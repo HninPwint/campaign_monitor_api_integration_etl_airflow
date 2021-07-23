@@ -48,8 +48,8 @@ dag = DAG(
 
 ### Initial 
 ### THis is to update accordingly    
-apikey = "xxx"
-clientId = "xxx"
+apikey = "Get_API_Key_From_Campaign_Monitor_Interace"
+clientId = "Get_Client_ID_From_Campaign_Monitor_Interace"
 
 page = 1
 pagesize = 1000
