@@ -48,8 +48,8 @@ dag = DAG(
 
 ### Initial 
 ### THis is to update accordingly    
-apikey = "xxxxx"
-clientId = "xxxx"
+apikey = "xxx"
+clientId = "xxx"
 
 page = 1
 pagesize = 1000
@@ -315,7 +315,7 @@ def insert_campaign_email_action_data_func(sql_del_str, sql_insert_string, actio
     conn = ps_pg_hook.get_conn()
 
     ti = kwargs['ti']
-    final_campaign_action_data = ti.xcom_pull(task_ids=f'get_campaign_actions_task_id')
+    final_campaign_action_data = ti.xcom_pull(task_ids=f'get_campaign_email_user_actions_data')
      
     cursor = conn.cursor()
     # Name of table to store data
