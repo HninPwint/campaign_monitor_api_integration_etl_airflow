@@ -20,7 +20,6 @@ from airflow import AirflowException
 from airflow.operators.python_operator import PythonOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-from psycopg2 import sql
 
 from airflow import DAG
 
@@ -37,9 +36,9 @@ dag_default_args = {
 }
 
 dag = DAG(
-    dag_id='campaign_monitor_api_integration',
+    dag_id='cc_campaign_monitor_api_integration',
     default_args=dag_default_args,
-    schedule_interval="@weekly",
+    schedule_interval="@once",
     catchup=True,
     max_active_runs=1,
     concurrency=5
@@ -48,8 +47,8 @@ dag = DAG(
 
 ### Initial 
 ### THis is to update accordingly    
-apikey = "Get_API_Key_From_Campaign_Monitor_Interace"
-clientId = "Get_Client_ID_From_Campaign_Monitor_Interace"
+apikey = "fz/ocDZn9rHm9ZAupGsDNjoBZGSnHO+8vmU/xWiPPvvFzPE0STJnTbnvu6/FvyOpUhp/TBu0txZ4xZYz6J8iyxkUDkBowVTiDflAvH0qdi5NzWSW+iq8L7j77/Qg77/6Wkj1JvxGkBTOtFOpV9saGw=="
+clientId = "33604187fc197c87eb8d2f553935ef8e"
 
 page = 1
 pagesize = 1000
@@ -212,16 +211,28 @@ def cal_number_of_days_to_campaingnEndDay(dateFrom, n):
     number_of_days_required = end_day - datetime_object 
     return(number_of_days_required.days)
 
+def insert_into_db(row, cursor, table):
+    print("")
+    # sql_insert_string = """ INSERT INTO %s  (campaign_id, email_address, action_date ) VALUES %s  """
+    # values = { row['campaignId'], row['EmailAddress'], row['Date']}
+    # execute_values(cursor, sql_insert_string , (table,  values))
+
+    # cursor.execute(f'INSERT INTO {table}'
+    #            '  (campaign_id, email_address, action_date ) VALUES   (?,?,?) ',
+    #            row['campaignId'], row['EmailAddress'], row['Date'])
+
+
 #########################################################
 #
-#   Get Some Campaign Email User Action Data
+#   Get Some Campaign
 #
 #########################################################
 
-def get_campaign_action_data_func(**kwargs):
+def get_campaign_actions_func(**kwargs):
+
 
     ti = kwargs['ti']
-    all_campaign_dict = ti.xcom_pull(task_ids=f'get_all_sent_campaign_list_data')
+    all_campaign_dict = ti.xcom_pull(task_ids=f'get_all_sent_campaign_task_id')
 
     df_all_sent_campaigns_list = pd.DataFrame(all_campaign_dict)
 
@@ -282,6 +293,7 @@ def get_campaign_action_data_func(**kwargs):
                 # logging.info("response_campaign_action length: ", len(response_campaign_action["Results"]) )
                 print("length", len(response_campaign_action["Results"]))
                 print("action", action)
+
                 
                 # If data is empty , skip the loop  
                 if(len(response_campaign_action["Results"]) == 0): continue
@@ -299,53 +311,64 @@ def get_campaign_action_data_func(**kwargs):
             if(len(df_campaign_email_action.index) > 0):           
                 campaign_email_action_dataset = df_campaign_email_action.drop_duplicates()
                 final_campaign_action_data[action]["data"] = final_campaign_action_data[action]["data"].append(campaign_email_action_dataset, ignore_index=True, sort=False) 
-                
+                # end_proc_time = datetime.now()
+           
+    
     return final_campaign_action_data
 
-#########################################################
-#
-#   Insert Campaign Email User Action Data into Data Warehouse
-#
-#########################################################
-def insert_campaign_email_action_data_func(sql_del_str, sql_insert_string, action, **kwargs):
+def insert_campaign_email_clicks_func(**kwargs):
 
     ps_pg_hook = PostgresHook(postgres_conn_id="postgres")
     conn = ps_pg_hook.get_conn()
 
     ti = kwargs['ti']
-    final_campaign_action_data = ti.xcom_pull(task_ids=f'get_campaign_email_user_actions_data')
+    final_campaign_action_data = ti.xcom_pull(task_ids=f'get_campaign_actions_task_id')
+    # print("campaign_action_data", final_campaign_action_data)
+    # campaign_action_data_df = pd.DataFrame.from_dict(campaign_action_data_dict)
+
+    #### Insert data by action (table by table)
      
     cursor = conn.cursor()
     # Name of table to store data
-    table_name = final_campaign_action_data[action]["destination_table_name"] 
+    table_name = final_campaign_action_data["clicks"]["destination_table_name"] 
     print("table_name", table_name)
-     
-    campaign_click_data = final_campaign_action_data[action]['data']
-    print("Check DATA TYPE====: ", type(campaign_click_data))  
-    print("len", len(final_campaign_action_data[action]['data']))
+    
+    
+    campaign_click_data = final_campaign_action_data["clicks"]['data']
+    print("Check DATA TYPE====: ", type(campaign_click_data)) 
+    # print("Columns: ", campaign_click_data.columns())
+    # campaign_click_data_df = pd.DataFrame.from_dict(campaign_click_data)
+
+    
+    print("len", len(final_campaign_action_data['clicks']['data']))
  
     if (len(campaign_click_data) > 0):
         try:
             #if full-load, delete all the records from the table, log records from the log table
             if (cfg_load_method == 'full'):
                 print("campaign_data", campaign_click_data)
-                
-                cursor.execute(sql_del_str)
-                cursor.execute(""" DELETE FROM campaign_monitor.log_success_load WHERE table_name LIKE %s ESCAPE ''""", (table_name,)) 
+                # TODO Later
+                cursor.execute(""" DELETE FROM campaign_monitor.campaign_email_clicks """)
+                cursor.execute(""" DELETE FROM campaign_monitor.log_success_load WHERE table_name LIKE %s ESCAPE ''""", (table_name,))    
 
+            # print("campaign_click_data", campaign_click_data_df)
             # Rename the columns to sync with DB table columns
             campaign_click_data = campaign_click_data.rename(columns={"campaignId": "campaign_id", "EmailAddress": "email_address", "Date": "action_date"})
 
             logging.info("Column names ", campaign_click_data.columns)
-            # Original Data in Dataframe was passed in Dictionary format in Airflow, that's why split and extact by "data"
+            # campaign_click_records_values = campaign_click_data[desired_columns].to_dict('split')
             campaign_click_records_values = campaign_click_data.to_dict('split')
             values = campaign_click_records_values['data']
 
+            # logging.info(values)
+
+            # https://pynative.com/python-postgresql-insert-update-delete-table-data-to-perform-crud-operations/
+     
             #insert dataframe to DB table
+            sql_insert_string = """ INSERT INTO campaign_monitor.campaign_email_clicks (campaign_id, email_address, action_date ) VALUES %s """
             execute_values(cursor, sql_insert_string, values)
             end_proc_time = datetime.now()
 
-            # Create the log of successful data load
             sql_insert_success_log = """ INSERT INTO  campaign_monitor.log_success_load  (load_date, method, data_start_date, data_end_date, start_runtime, end_runtime, table_name) VALUES %s """
             log_values = [[ start_proc_time.strftime('%Y-%m-%d'),
                 cfg_load_method,
@@ -374,87 +397,30 @@ def insert_campaign_email_action_data_func(sql_del_str, sql_insert_string, actio
 # #
 # #########################################################
 
-extract_all_sent_campaign_task = PythonOperator(
-    task_id=f'get_all_sent_campaign_list_data',
+get_all_sent_campaign_task = PythonOperator(
+    task_id=f'get_all_sent_campaign_task_id',
     python_callable=getAllSentCampaigns_func,
     provide_context=True,
     op_kwargs = {"clientId": clientId },
     dag=dag
 )
 
-extract_campaign_user_email_actions_data = PythonOperator(
-    task_id='get_campaign_email_user_actions_data',
-    python_callable=get_campaign_action_data_func,
-    provide_context=True,   
+get_campaign_actions_task = PythonOperator(
+    task_id='get_campaign_actions_task_id',
+    python_callable=get_campaign_actions_func,
+    provide_context=True,
     dag=dag
 )
 
-sql_del_str_clicks = """ DELETE FROM campaign_monitor.campaign_email_clicks """
-sql_insert_str_clicks = """ INSERT INTO campaign_monitor.campaign_email_clicks (campaign_id, email_address, action_date ) VALUES %s """
 insert_campaign_email_click_data = PythonOperator(
-    task_id='insert_campaign_email_click_data',
-    python_callable=insert_campaign_email_action_data_func,
+    task_id='insert_campaign_email_click_data_task_id',
+    python_callable=insert_campaign_email_clicks_func,
     provide_context=True,
-    op_kwargs = {"action": "clicks", 
-                "sql_insert_string" : sql_insert_str_clicks,
-                "sql_del_str": sql_del_str_clicks},
-    dag=dag
-)
-
-sql_del_str_opens = """ DELETE FROM campaign_monitor.campaign_email_opens """
-sql_insert_str_opens = """ INSERT INTO campaign_monitor.campaign_email_opens (campaign_id, email_address, action_date ) VALUES %s """
-insert_campaign_email_open_data = PythonOperator(
-    task_id='insert_campaign_email_open_data',
-    python_callable=insert_campaign_email_action_data_func,
-    provide_context=True,
-    op_kwargs = {"action": "opens",
-                "sql_insert_string" : sql_insert_str_opens,
-                "sql_del_str": sql_del_str_opens},
     dag=dag
 )
 
 
-sql_del_str_bounces = """ DELETE FROM campaign_monitor.campaign_email_bounces """
-sql_insert_str_bounces = """ INSERT INTO campaign_monitor.campaign_email_bounces (campaign_id, email_address, action_date ) VALUES %s """
-insert_campaign_email_bounce_data = PythonOperator(
-    task_id='insert_campaign_email_bounce_data',
-    python_callable=insert_campaign_email_action_data_func,
-    provide_context=True,
-    op_kwargs = {"action": "bounces",
-                "sql_insert_string" : sql_insert_str_bounces,
-                "sql_del_str": sql_del_str_bounces},
-    dag=dag
-)
+get_all_sent_campaign_task  >> get_campaign_actions_task >> insert_campaign_email_click_data
 
-sql_del_str_unsubscribes = """ DELETE FROM campaign_monitor.campaign_email_unsubscribes """
-sql_insert_str_unsubscribes = """ INSERT INTO campaign_monitor.campaign_email_unsubscribes (campaign_id, email_address, action_date ) VALUES %s """
-insert_campaign_email_unsubscribe_data = PythonOperator(
-    task_id='insert_campaign_email_unsubscribe_data',
-    python_callable=insert_campaign_email_action_data_func,
-    provide_context=True,
-    op_kwargs = {"action": "unsubscribes",
-                "sql_insert_string" : sql_insert_str_unsubscribes,
-                "sql_del_str": sql_del_str_unsubscribes},
-    dag=dag
-)
-
-sql_del_str_spams = """ DELETE FROM campaign_monitor.campaign_email_spam """
-sql_insert_str_spams = """ INSERT INTO campaign_monitor.campaign_email_spams (campaign_id, email_address, action_date ) VALUES %s """
-insert_campaign_email_spam_data = PythonOperator(
-    task_id='insert_campaign_email_spam_data',
-    python_callable=insert_campaign_email_action_data_func,
-    provide_context=True,
-    op_kwargs = {"action": "spam",
-                "sql_insert_string" : sql_insert_str_spams,
-                "sql_del_str": sql_del_str_spams},
-    dag=dag
-)
-
-
-extract_all_sent_campaign_task  >> extract_campaign_user_email_actions_data >> insert_campaign_email_click_data
-extract_all_sent_campaign_task  >> extract_campaign_user_email_actions_data >> insert_campaign_email_open_data
-extract_all_sent_campaign_task  >> extract_campaign_user_email_actions_data >> insert_campaign_email_bounce_data
-extract_all_sent_campaign_task  >> extract_campaign_user_email_actions_data >> insert_campaign_email_unsubscribe_data
-extract_all_sent_campaign_task  >> extract_campaign_user_email_actions_data >> insert_campaign_email_spam_data
 
 
