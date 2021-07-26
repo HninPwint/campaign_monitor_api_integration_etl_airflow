@@ -31,7 +31,7 @@ dag_default_args = {
 }
 
 dag = DAG(
-    dag_id='test',
+    dag_id='campaign_monitor_api_integration',
     default_args=dag_default_args,
     schedule_interval="@once",
     catchup=True,
@@ -271,8 +271,21 @@ insert_campaign_email_spam_data = PythonOperator(
     dag=dag
 )
 
-extract_all_sent_campaign_task >> extract_campaign_user_email_actions_data >>[insert_campaign_email_click_data,
-                                                                            insert_campaign_email_open_data, 
-                                                                            insert_campaign_email_bounce_data,
-                                                                            insert_campaign_email_unsubscribe_data,
-                                                                            insert_campaign_email_spam_data]
+
+
+#########################################################
+#
+#   DAG Operators Sequencing
+#
+#########################################################
+# extract_all_sent_campaign_task >> extract_campaign_user_email_actions_data >>[insert_campaign_email_click_data,
+#                                                                             insert_campaign_email_open_data, 
+#                                                                             insert_campaign_email_bounce_data,
+#                                                                             insert_campaign_email_unsubscribe_data,
+#                                                                             insert_campaign_email_spam_data]
+
+extract_all_sent_campaign_task  >> extract_campaign_user_email_actions_data >> insert_campaign_email_click_data
+extract_all_sent_campaign_task  >> extract_campaign_user_email_actions_data >> insert_campaign_email_open_data
+extract_all_sent_campaign_task  >> extract_campaign_user_email_actions_data >> insert_campaign_email_bounce_data
+extract_all_sent_campaign_task  >> extract_campaign_user_email_actions_data >> insert_campaign_email_unsubscribe_data
+extract_all_sent_campaign_task  >> extract_campaign_user_email_actions_data >> insert_campaign_email_spam_data
