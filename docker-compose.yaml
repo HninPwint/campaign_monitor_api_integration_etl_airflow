@@ -40,6 +40,7 @@ version: '3'
 x-airflow-common:
   &airflow-common
   image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.0.1}
+  #build: ./
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -106,11 +107,19 @@ services:
     <<: *airflow-common
     command: scheduler
     restart: always
+    volumes:
+        - ./dags:/opt/airflow/dags
+        - ./logs:/opt/airflow/logs
+        - ./plugins:/opt/airflow/plugins
 
   airflow-worker:
     <<: *airflow-common
     command: celery worker
     restart: always
+    volumes:
+        - ./dags:/opt/airflow/dags
+        - ./logs:/opt/airflow/logs
+        - ./plugins:/opt/airflow/plugins
 
   airflow-init:
     <<: *airflow-common
