@@ -3,8 +3,11 @@
 
 
 ### Project Overview
-This project aims to orchestrate schedued ETL process of Data extracted from the marketing thrid party's API ( Campaign Monitor) in Airflow
+This project aims to orchestrate schedued ETL process of Data extraction from the marketing thrid party's API ( Campaign Monitor), loaded in to the on-premise dataware house
+with Airflow.
 
+### Project Set Up
+``` docker-compose up -d ```
 
 
 ### DAG (1)
