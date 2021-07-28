@@ -14,11 +14,8 @@ class API_DataReader:
 
         ### Initial 
         ### THis is to update accordingly    
-        #apikey = "Get_API_Key_From_Campaign_Monitor_Interace"
-        #self.clientId = "Get_Client_ID_From_Campaign_Monitor_Interace"
-
-        apikey = "fz/ocDZn9rHm9ZAupGsDNjoBZGSnHO+8vmU/xWiPPvvFzPE0STJnTbnvu6/FvyOpUhp/TBu0txZ4xZYz6J8iyxkUDkBowVTiDflAvH0qdi5NzWSW+iq8L7j77/Qg77/6Wkj1JvxGkBTOtFOpV9saGw=="
-        self.clientId = "33604187fc197c87eb8d2f553935ef8e"
+        apikey = "Get_API_Key_From_Campaign_Monitor_Interace"
+        self.clientId = "Get_Client_ID_From_Campaign_Monitor_Interace"
 
         self.page = 1
         self.pagesize = 1000
