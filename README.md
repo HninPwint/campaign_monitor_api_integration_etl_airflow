@@ -20,3 +20,6 @@ DAG List
 ![image](https://user-images.githubusercontent.com/14988972/126758283-089b77fb-9a90-459d-9a18-d6338120703e.png)
 
 
+### Detail View of DAG (2)
+
+![image](https://user-images.githubusercontent.com/14988972/128623205-a6578cf1-945c-4fc6-9f4b-1b263b8fa7b3.png)
