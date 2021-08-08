@@ -9,7 +9,7 @@ with Airflow.
 ### Project Set Up
 ``` docker-compose up -d ```
 
-DAG List
+### Airflow Dashbord
 ![image](https://user-images.githubusercontent.com/14988972/128623091-62013a68-8943-4dad-adb2-4826dc2cf3b5.png)
 
 
@@ -21,5 +21,4 @@ DAG List
 
 
 ### List View of DAG (2)
-
 ![image](https://user-images.githubusercontent.com/14988972/128623205-a6578cf1-945c-4fc6-9f4b-1b263b8fa7b3.png)
