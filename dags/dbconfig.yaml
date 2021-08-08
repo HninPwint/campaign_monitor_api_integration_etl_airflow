@@ -1,31 +1,10 @@
-instances:
-  ##@param driver - string - required
-  #sql server driver name
-  driver: "{SQL Server}"
-  
-  ##@param servername - string - required
-  #server name # HNIN-WIN10-LENO\SQLEXPRESS
-  servername: HNIN-WIN10-LENO
-  
-  ##@param database - string - required
-  #database name to store the tables
-  database: ccnsw_campaign
-  
-  ##@param username - string - required
-  #username to connect to database server
-  username: ilab
-  
-  ##@param password - string - required
-  #account password
-  password: ilab
-
 loading:
   ##@param method - string - required
   #method to load the data into datawarehouse (full/incremental)
   #default: incremental
   #NOTE: full loading will delete data in the existing DB (backup the data if necessary)
-# method: incremental
-  method: full
+  method: incremental
+  #method: full
   
   ##@param day_update_lag - numeric - required
   #Number of days between today and the latest data to be extracted and loaded into the Datawarehouse (0: today's data, 1: yesterday's)

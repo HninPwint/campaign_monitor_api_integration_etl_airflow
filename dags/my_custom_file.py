@@ -75,11 +75,15 @@ class API_DataReader:
         # Time to mark the end of processing
         self.end_proc_time = 0
 
-    ### Get the sent campaign
-
-
+  
     def set_query_start_date(self, tableName):
+        ## This function returns the string format of datetime object
+
+        ## Retrive the last success load date from DB of the respective table
         query_startDate = self.get_last_success_load_time(tableName)
+        
+        ### convert to string to return
+        query_startDate = query_startDate.strftime("%Y-%m-%d %H:%M:%S")
         return query_startDate
 
     def get_last_success_load_time(self, table):
@@ -96,20 +100,19 @@ class API_DataReader:
         ps_pg_hook = PostgresHook(postgres_conn_id="postgres")
         conn_ps = ps_pg_hook.get_conn()
 
-        load_log = pd.read_sql(  '  SELECT TOP 1'
-                                '         load_date, '
+        load_log = pd.read_sql( '  SELECT load_date, '
                                 '         method, '
                                 '         data_start_date, ' 
                                 '         data_end_date '
                                 '  FROM campaign_monitor.log_success_load '
                                 '  WHERE  table_name = \''+table+'\' '
-                                '  ORDER BY end_runtime DESC ',
+                                '  ORDER BY end_runtime DESC LIMIT 1',
                             conn_ps)
 
         #if no data is available in the table (log_success_load), then no data has been load before
         #so, applying full load instead (4 months of data)    
         if (load_log.shape[0] == 0):
-            cfg_start_date = datetime.now() - relativedelta(months = default_full_load_month)
+            cfg_start_date = datetime.now() - relativedelta(months = self.default_full_load_month)
             cfg_load_method = 'full [def]'
             print('#No data is available in the database. Applying \'Full Load\' From \''+cfg_start_date.strftime('%Y-%m-%d')+'\'')
         else:
