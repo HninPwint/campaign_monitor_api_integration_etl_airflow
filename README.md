@@ -7,7 +7,9 @@ This project aims to orchestrate schedued ETL process of Data extraction from th
 with Airflow.
 
 ### Project Set Up
-``` docker-compose up -d ```
+* to launch the docker container, ``` docker-compose up -d ```
+* Once the docker is running, in the web browser http://localhost:8080/ 
+* Username/password: airflow/airflow
 
 ### Airflow Dashbord
 ![image](https://user-images.githubusercontent.com/14988972/128623091-62013a68-8943-4dad-adb2-4826dc2cf3b5.png)
