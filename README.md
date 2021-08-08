@@ -9,6 +9,9 @@ with Airflow.
 ### Project Set Up
 ``` docker-compose up -d ```
 
+DAG List
+![image](https://user-images.githubusercontent.com/14988972/128623091-62013a68-8943-4dad-adb2-4826dc2cf3b5.png)
+
 
 ### DAG (1)
 ![image](https://user-images.githubusercontent.com/14988972/126753027-8506eb68-9fa4-4532-96f2-bb323f583040.png)
