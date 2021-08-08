@@ -3,7 +3,7 @@
 
 
 ### Project Overview
-This project aims to orchestrate schedued ETL process of Data extraction from the marketing thrid party's API ( Campaign Monitor), loaded in to the on-premise dataware house
+This project aims to orchestrate schedued ETL process of Data extraction from the marketing thrid party's API ( Campaign Monitor), loaded in to the on-premise PostgreSQL data warehouse
 with Airflow.
 
 ### Project Set Up
