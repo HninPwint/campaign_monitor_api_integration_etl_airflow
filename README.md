@@ -19,8 +19,6 @@ with Airflow.
 ![image](https://user-images.githubusercontent.com/14988972/126753027-8506eb68-9fa4-4532-96f2-bb323f583040.png)
 
 ### DAG (2)
-![image](https://user-images.githubusercontent.com/14988972/126758283-089b77fb-9a90-459d-9a18-d6338120703e.png)
-
 ![image](https://user-images.githubusercontent.com/14988972/128624024-8ff67f27-b7ca-426e-b607-0f6e53bec731.png)
 
 
